@@ -228,7 +228,7 @@ import {
 import Depp from "./depp";
 import { Crate } from "./Crate";
 import { Enemy } from "./Enemy";
-import { buildLevel } from "./buildLevel";
+import buildLevel from "./buildLevel";
 
 export let score = 0,
   deaths = 0;
@@ -247,7 +247,7 @@ export default function Platformer(
     setGravity(-0.01);
     setCameraScale(4 * 16);
     level.gameTimer.set();
-    buildLevel();
+    level = { ...level, ...buildLevel() };
   }
 
   ///////////////////////////////////////////////////////////////////////////////

@@ -1,10 +1,8 @@
 import {
   clamp,
-  // Random
   rand,
   randInt,
   randColor,
-  // More utilities
   vec2,
   Color,
   glEnable,
@@ -17,7 +15,9 @@ import {
   frameRate,
   engineObjectsUpdate,
   engineObjectsDestroy,
+  Vector2,
 } from "../../lib/little";
+
 import { Crate } from "./Crate";
 import { Enemy } from "./Enemy";
 import {
@@ -26,24 +26,16 @@ import {
   decorateBackgroundTile,
   decorateTile,
   level,
-} from ".";
-import {
   tileType_empty,
   tileType_solid,
   setTileBackgroundData,
   tileType_ladder,
-  tileLayer,
-  tileBackgroundLayer,
   getTileBackgroundData,
-  levelGroundColor,
-  warmup,
   spawnPlayer,
 } from ".";
+import { Player } from "./player";
 
-///////////////////////////////////////////////////////////////////////////////
-// level generation
-
-export function buildTerrain(size) {
+function buildTerrain(size: Vector2) {
   level.tileBackground = [];
   const { levelSize } = level;
   initTileCollision(size);
@@ -134,23 +126,24 @@ export function buildTerrain(size) {
     new Enemy(vec2(rand(levelSize.x), rand(levelSize.y)));
 }
 
-export function generateLevel() {
+function generateLevel(levelSize: Vector2) {
   // clear old level
   engineObjectsDestroy();
 
   // randomize ground level hills
-  buildTerrain(level.levelSize);
-
-  // find starting poing for player
-  level.playerStartPos = vec2(rand(level.levelSize.x), level.levelSize.y);
-  const raycastHit = tileCollisionRaycast(
-    level.playerStartPos,
-    vec2(level.playerStartPos.x, 0)
-  );
-  level.playerStartPos = raycastHit.add(vec2(0, 1));
+  buildTerrain(levelSize);
 }
 
-export function makeTileLayers() {
+function calcPlayerStart(levelSize: Vector2) {
+  const playerStartPos = vec2(rand(levelSize.x), levelSize.y);
+  const raycastHit = tileCollisionRaycast(
+    playerStartPos,
+    vec2(playerStartPos.x, 0)
+  );
+  return raycastHit.add(vec2(0, 1));
+}
+
+function makeTileLayers() {
   const { levelSize } = level;
   // create tile layers
   level.tileLayer = new TileLayer(vec2(), levelSize);
@@ -199,26 +192,27 @@ export function makeTileLayers() {
   }
 }
 
-export function buildLevel() {
-  level.levelSize = vec2(256);
-  level.levelColor = randColor(
+export default function buildLevel() {
+  const levelSize = vec2(256);
+  const levelColor = randColor(
     new Color(0.2, 0.2, 0.2),
     new Color(0.8, 0.8, 0.8)
   );
-  level.levelGroundColor = level.levelColor
+  const levelGroundColor = levelColor
     .mutate()
     .add(new Color(0.4, 0.4, 0.4))
     .clamp();
 
-  generateLevel();
+  generateLevel(levelSize);
+  const playerStartPos = calcPlayerStart(levelSize);
   initSky();
   initParallaxLayers();
 
   // apply decoration to level tiles
   makeTileLayers();
   const pos = vec2();
-  for (pos.x = level.levelSize.x; pos.x--; )
-    for (pos.y = level.levelSize.y; pos.y-- > 1; ) {
+  for (pos.x = levelSize.x; pos.x--; )
+    for (pos.y = levelSize.y; pos.y-- > 1; ) {
       decorateBackgroundTile(pos);
       decorateTile(pos);
     }
@@ -229,5 +223,16 @@ export function buildLevel() {
   level.warmup = 0;
 
   // spawn player
-  spawnPlayer();
+  const player = new Player(playerStartPos);
+
+  return {
+    score: 0,
+    deaths: 0,
+    player,
+    playerStartPos,
+    levelSize,
+    levelColor,
+    levelGroundColor,
+    warmup: 0,
+  };
 }
