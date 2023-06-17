@@ -526,6 +526,7 @@ export const sound_killEnemy = new Sound([
 // special effects
 
 export const persistentParticleDestroyCallback = (particle) => {
+  if (!level.tileLayer) throw new Error("destroyTileE1");
   // copy particle to tile layer on death
   ASSERT(particle.tileIndex < 0); // quick draw to tile layer uses canvas 2d so must be untextured
   if (particle.groundObject)
@@ -599,7 +600,8 @@ export function explosion(pos, radius = 3) {
   const cleanupRadius = radius + 1;
   for (let x = -cleanupRadius; x < cleanupRadius; ++x) {
     const h = (cleanupRadius ** 2 - x ** 2) ** 0.5;
-    for (let y = -h; y < h; ++y) decorateTile(pos.add(vec2(x, y)).floor());
+    for (let y = -h; y < h; ++y)
+      decorateTile(level.tileLayer, pos.add(vec2(x, y)).floor());
   }
 
   // kill/push objects
@@ -687,6 +689,8 @@ export function explosion(pos, radius = 3) {
 ///////////////////////////////////////////////////////////////////////////////
 
 export function destroyTile(pos, makeSound = 1, cleanNeighbors = 1) {
+  if (!level.tileLayer) throw new Error("destroyTileE1");
+
   // pos must be an int
   pos = pos.floor();
 
@@ -707,7 +711,8 @@ export function destroyTile(pos, makeSound = 1, cleanNeighbors = 1) {
     // cleanup neighbors
     if (cleanNeighbors) {
       for (let i = -1; i <= 1; ++i)
-        for (let j = -1; j <= 1; ++j) decorateTile(pos.add(vec2(i, j)));
+        for (let j = -1; j <= 1; ++j)
+          decorateTile(level.tileLayer, pos.add(vec2(i, j)));
     }
   }
 
@@ -751,11 +756,11 @@ export function decorateBackgroundTile(pos) {
   }
 }
 
-export function decorateTile(pos) {
+export function decorateTile(tileLayer, pos) {
   ASSERT((pos.x | 0) == pos.x && (pos.y | 0) == pos.y);
   const tileData = getTileCollisionData(pos);
   if (tileData <= 0) {
-    tileData || level.tileLayer.setData(pos, new TileLayerData(), 1); // force it to clear if it is empty
+    tileData || tileLayer.setData(pos, new TileLayerData(), 1); // force it to clear if it is empty
     return;
   }
 
@@ -768,14 +773,14 @@ export function decorateTile(pos) {
 
     // make pixel perfect outlines
     const size = i & 1 ? vec2(2, 16) : vec2(16, 2);
-    level.tileLayer.context.fillStyle = level.levelGroundColor.mutate(0.1);
+    tileLayer.context.fillStyle = level.levelGroundColor.mutate(0.1);
     const drawPos = pos
       .scale(16)
       .add(vec2(i == 1 ? 14 : 0, i == 0 ? 14 : 0))
       .subtract(i & 1 ? vec2(0, 8 - size.y / 2) : vec2(8 - size.x / 2, 0));
-    level.tileLayer.context.fillRect(
+    tileLayer.context.fillRect(
       drawPos.x,
-      level.tileLayer.canvas.height - drawPos.y,
+      tileLayer.canvas.height - drawPos.y,
       size.x,
       -size.y
     );
@@ -854,7 +859,7 @@ export function drawStars() {
 
 let tileParallaxLayers = [];
 
-export function initParallaxLayers() {
+export function initParallaxLayers(levelColor: Color) {
   tileParallaxLayers = [];
   for (let i = 3; i--; ) {
     // setup the layer
@@ -868,9 +873,7 @@ export function initParallaxLayers() {
     tileParallaxLayer.canvas.width = parallaxSize.x;
 
     // create a gradient
-    const layerColor = level.levelColor
-      .mutate(0.2)
-      .lerp(skyColor, 0.95 - i * 0.15);
+    const layerColor = levelColor.mutate(0.2).lerp(skyColor, 0.95 - i * 0.15);
     const gradient = (tileParallaxLayer.context.fillStyle =
       tileParallaxLayer.context.createLinearGradient(
         0,
@@ -948,10 +951,6 @@ export let level = {
 };
 
 export let tileBackground: any[];
-export const setTileBackgroundData = (pos: Vector2, data = 0) =>
-  pos.arrayCheck(tileCollisionSize) &&
-  (level.tileBackground[((pos.y | 0) * tileCollisionSize.x + pos.x) | 0] =
-    data);
 export const getTileBackgroundData = (pos: Vector2) =>
   pos.arrayCheck(tileCollisionSize)
     ? level.tileBackground[((pos.y | 0) * tileCollisionSize.x + pos.x) | 0]

@@ -6,9 +6,9 @@ import {
   vec2,
   Color,
   glEnable,
+  tileCollisionSize,
   initTileCollision,
   setTileCollisionData,
-  getTileCollisionData,
   tileCollisionRaycast,
   TileLayerData,
   TileLayer,
@@ -16,6 +16,7 @@ import {
   engineObjectsUpdate,
   engineObjectsDestroy,
   Vector2,
+  setTileCollision,
 } from "../../lib/little";
 
 import { Crate } from "./Crate";
@@ -28,23 +29,22 @@ import {
   level,
   tileType_empty,
   tileType_solid,
-  setTileBackgroundData,
   tileType_ladder,
   getTileBackgroundData,
-  spawnPlayer,
+  tileBackground,
 } from ".";
 import { Player } from "./player";
+import { setTile, getTile } from "./setTile";
 
-function buildTerrain(size: Vector2) {
-  level.tileBackground = [];
-  const { levelSize } = level;
-  initTileCollision(size);
+function buildTerrain(levelSize: Vector2) {
+  const tileBackground: number[] = [];
+  const tileCollision: number[] = [];
   let startGroundLevel = 40;
   let groundLevel = startGroundLevel;
   let groundSlope = rand(-1, 1);
   let backgroundDelta = 0,
     backgroundDeltaSlope = 0;
-  for (let x = 0; x < size.x; x++) {
+  for (let x = 0; x < levelSize.x; x++) {
     // pull slope towards start ground level
     groundLevel += groundSlope =
       rand() < 0.05
@@ -68,8 +68,8 @@ function buildTerrain(size: Vector2) {
     if (rand() < 0.1) backgroundDeltaSlope = rand(-1, 1);
     backgroundDelta = clamp(backgroundDelta, -1, 3);
 
-    groundLevel = clamp(groundLevel, 20, level.levelSize.y - 20);
-    for (let y = 0; y < size.y; y++) {
+    groundLevel = clamp(groundLevel, 20, levelSize.y - 20);
+    for (let y = 0; y < levelSize.y; y++) {
       const pos = vec2(x, y);
 
       let frontTile = tileType_empty;
@@ -78,8 +78,8 @@ function buildTerrain(size: Vector2) {
       let backTile = tileType_empty;
       if (y < groundLevel + backgroundDelta) backTile = tileType_solid;
 
-      setTileCollisionData(pos, frontTile);
-      setTileBackgroundData(pos, backTile);
+      setTile(levelSize, tileCollision, pos, frontTile);
+      setTile(levelSize, tileBackground, pos, backTile);
     }
   }
 
@@ -90,7 +90,7 @@ function buildTerrain(size: Vector2) {
     const offset = vec2();
     for (offset.x = randInt(19, 1); --offset.x; )
       for (offset.y = height; --offset.y; )
-        setTileCollisionData(pos.add(offset), tileType_empty);
+        setTile(levelSize, tileCollision, pos.add(offset), tileType_empty);
   }
 
   // add ladders
@@ -100,9 +100,9 @@ function buildTerrain(size: Vector2) {
 
     // find good place to put ladders
     let state = 0,
-      ladderTop;
+      ladderTop = 0;
     for (; pos.y > 9; --pos.y) {
-      const data = getTileCollisionData(pos);
+      const data = getTile(levelSize, tileCollision, pos);
       if (state == 0 || state == 2)
         data || state++; // found empty, go to next state
       else if (state == 1) {
@@ -111,7 +111,7 @@ function buildTerrain(size: Vector2) {
       } else if (state == 3 && data) {
         // found solid again, build ladder
         for (; ++pos.y <= ladderTop; )
-          setTileCollisionData(pos, tileType_ladder);
+          setTile(levelSize, tileCollision, pos, tileType_ladder);
         break;
       }
     }
@@ -124,14 +124,13 @@ function buildTerrain(size: Vector2) {
   // spawn enemies
   for (let enemyCount = 10; enemyCount--; )
     new Enemy(vec2(rand(levelSize.x), rand(levelSize.y)));
+
+  return { tileBackground, tileCollision };
 }
 
 function generateLevel(levelSize: Vector2) {
   // clear old level
   engineObjectsDestroy();
-
-  // randomize ground level hills
-  buildTerrain(levelSize);
 }
 
 function calcPlayerStart(levelSize: Vector2) {
@@ -143,12 +142,15 @@ function calcPlayerStart(levelSize: Vector2) {
   return raycastHit.add(vec2(0, 1));
 }
 
-function makeTileLayers() {
-  const { levelSize } = level;
+function makeTileLayers(
+  levelSize: Vector2,
+  tileBackground: number[],
+  tileCollision: number[],
+  levelColor: Color
+) {
   // create tile layers
-  level.tileLayer = new TileLayer(vec2(), levelSize);
-  level.tileBackgroundLayer = new TileLayer(vec2(), levelSize);
-  const { tileLayer, tileBackgroundLayer } = level;
+  const tileLayer = new TileLayer(vec2(), levelSize);
+  const tileBackgroundLayer = new TileLayer(vec2(), levelSize);
   tileLayer.renderOrder = -1000;
   tileBackgroundLayer.renderOrder = -2000;
 
@@ -156,12 +158,12 @@ function makeTileLayers() {
   for (pos.x = levelSize.x; pos.x--; )
     for (pos.y = levelSize.y; pos.y--; ) {
       // foreground tiles
-      let tileType = getTileCollisionData(pos);
+      let tileType = getTile(levelSize, tileBackground, pos);
       if (tileType) {
         let direction, mirror, tileIndex, color;
         if (tileType == tileType_solid) {
           tileIndex = (5 + rand() ** 3 * 2) | 0;
-          color = level.levelColor.mutate(0.03);
+          color = levelColor.mutate(0.03);
           direction = randInt(4);
           mirror = randInt(2);
         } else if (tileType == tileType_ladder) tileIndex = 7;
@@ -171,13 +173,13 @@ function makeTileLayers() {
       }
 
       // background tiles
-      tileType = getTileBackgroundData(pos);
+      tileType = getTile(levelSize, tileCollision, pos);
       if (tileType) {
         const data = new TileLayerData(
           (5 + rand() ** 3 * 2) | 0,
           randInt(4),
           randInt(2),
-          level.levelColor.mutate().scale(0.4, 1)
+          levelColor.mutate().scale(0.4, 1)
         );
         tileBackgroundLayer.setData(pos, data);
       }
@@ -190,6 +192,8 @@ function makeTileLayers() {
     tileBackgroundLayer.destroy();
     level.tileBackgroundLayer = 0;
   }
+
+  return { tileLayer, tileBackgroundLayer };
 }
 
 export default function buildLevel() {
@@ -204,18 +208,27 @@ export default function buildLevel() {
     .clamp();
 
   generateLevel(levelSize);
-  const playerStartPos = calcPlayerStart(levelSize);
+  // randomize ground level hills
+  const { tileBackground, tileCollision } = buildTerrain(levelSize);
+
   initSky();
-  initParallaxLayers();
+  initParallaxLayers(levelColor);
 
   // apply decoration to level tiles
-  makeTileLayers();
+  const { tileLayer, tileBackgroundLayer } = makeTileLayers(
+    levelSize,
+    tileBackground,
+    tileCollision,
+    levelColor
+  );
   const pos = vec2();
   for (pos.x = levelSize.x; pos.x--; )
     for (pos.y = levelSize.y; pos.y-- > 1; ) {
       decorateBackgroundTile(pos);
-      decorateTile(pos);
+      decorateTile(tileLayer, pos);
     }
+  initTileCollision(levelSize);
+  setTileCollision(tileCollision);
 
   // warm up level
   level.warmup = 1;
@@ -223,6 +236,7 @@ export default function buildLevel() {
   level.warmup = 0;
 
   // spawn player
+  const playerStartPos = calcPlayerStart(levelSize);
   const player = new Player(playerStartPos);
 
   return {
@@ -233,6 +247,10 @@ export default function buildLevel() {
     levelSize,
     levelColor,
     levelGroundColor,
+    tileBackground,
+    tileCollision,
     warmup: 0,
+    tileLayer,
+    tileBackgroundLayer,
   };
 }
