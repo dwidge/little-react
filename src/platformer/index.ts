@@ -16,7 +16,6 @@ import {
   ASSERT,
   // ---------- Custom methods
   setTileSizeDefault,
-  setRandSeed,
   setCameraPos,
   setCameraScale,
   setGravity,
@@ -68,9 +67,7 @@ import {
   randSign,
   randInCircle,
   randVector,
-  randColor,
   randSeed, // Add get/set
-  randSeeded,
   // More utilities
   vec2,
   Vector2,
@@ -109,8 +106,6 @@ import {
   soundDefaultTaper,
   // Draw
   tileImage,
-  mainCanvas,
-  mainContext,
   overlayCanvas,
   overlayContext,
   mainCanvasSize,
@@ -211,7 +206,6 @@ import {
   engineObjects,
   //engineObjectsCollide,
   frame,
-  time,
   timeReal,
   paused,
   //frameTimeLastMS,
@@ -288,8 +282,10 @@ export default function Platformer(
 
   ///////////////////////////////////////////////////////////////////////////////
   function gameRender() {
-    drawSky();
-    drawStars();
+    if (level.sky) {
+      drawSky(level.sky);
+      drawStars(level.sky);
+    }
   }
 
   ///////////////////////////////////////////////////////////////////////////////
@@ -788,78 +784,11 @@ export function decorateTile(tileLayer, pos) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// sky with background gradient, stars, and planets
-
-let skySeed, skyColor, horizonColor;
-
-export function initSky() {
-  skySeed = rand(1e9);
-  skyColor = randColor(new Color(0.5, 0.5, 0.5), new Color(0.9, 0.9, 0.9));
-  horizonColor = skyColor
-    .subtract(new Color(0.05, 0.05, 0.05))
-    .mutate(0.3)
-    .clamp();
-}
-
-export function drawSky() {
-  // fill background with a gradient
-  const gradient = (mainContext.fillStyle = mainContext.createLinearGradient(
-    0,
-    0,
-    0,
-    mainCanvas.height
-  ));
-  gradient.addColorStop(0, skyColor);
-  gradient.addColorStop(1, horizonColor);
-  mainContext.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
-}
-
-export function drawStars() {
-  // draw stars and planets
-  setRandSeed(skySeed);
-  const largeStarCount = 9;
-  for (let i = 1e3; i--; ) {
-    let size = randSeeded(6, 1);
-    let speed = randSeeded() < 0.9 ? randSeeded(5) : randSeeded(99, 9);
-    let color = new Color().setHSLA(
-      randSeeded(0.2, -0.3),
-      randSeeded() ** 9,
-      randSeeded(1, 0.5),
-      randSeeded(0.9, 0.3)
-    );
-    if (i < largeStarCount) {
-      // large planets and suns
-      size = randSeeded() ** 3 * 99 + 9;
-      speed = randSeeded(5);
-      color = new Color()
-        .setHSLA(randSeeded(), randSeeded(), randSeeded(1, 0.5))
-        .add(skyColor.scale(0.5))
-        .clamp();
-    }
-
-    const extraSpace = 200;
-    const w = mainCanvas.width + 2 * extraSpace,
-      h = mainCanvas.height + 2 * extraSpace;
-    const screenPos = vec2(
-      ((randSeeded(w) + time * speed) % w) - extraSpace,
-      ((randSeeded(h) + time * speed * randSeeded()) % h) - extraSpace
-    );
-
-    mainContext.fillStyle = color;
-    if (size < 9) mainContext.fillRect(screenPos.x, screenPos.y, size, size);
-    else
-      mainContext.beginPath(
-        mainContext.fill(mainContext.arc(screenPos.x, screenPos.y, size, 0, 9))
-      );
-  }
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // parallax background mountain ranges
 
 let tileParallaxLayers = [];
 
-export function initParallaxLayers(levelColor: Color) {
+export function initParallaxLayers(levelColor: Color, sky: Sky) {
   tileParallaxLayers = [];
   for (let i = 3; i--; ) {
     // setup the layer
@@ -873,7 +802,9 @@ export function initParallaxLayers(levelColor: Color) {
     tileParallaxLayer.canvas.width = parallaxSize.x;
 
     // create a gradient
-    const layerColor = levelColor.mutate(0.2).lerp(skyColor, 0.95 - i * 0.15);
+    const layerColor = levelColor
+      .mutate(0.2)
+      .lerp(sky.skyColor, 0.95 - i * 0.15);
     const gradient = (tileParallaxLayer.context.fillStyle =
       tileParallaxLayer.context.createLinearGradient(
         0,
@@ -921,6 +852,7 @@ export function updateParallaxLayers() {
 }
 
 import { Player } from "./player";
+import { drawSky, drawStars, skyColor, Sky } from "./drawSky";
 
 /// level.ts
 /*
@@ -935,7 +867,23 @@ export const tileType_ladder = -1;
 export const tileType_empty = 0;
 export const tileType_solid = 1;
 
-export let level = {
+export type Level = {
+  score: number;
+  deaths: number;
+  gameTimer: Timer;
+  player?: Player;
+  playerStartPos: Vector2;
+  tileLayer?: TileLayer;
+  tileBackground?: number[];
+  tileBackgroundLayer?: TileLayer;
+  levelSize?: Vector2;
+  levelColor?: Color;
+  sky?: Sky;
+  levelGroundColor: {};
+  warmup: number;
+};
+
+export let level: Level = {
   score: 0,
   deaths: 0,
   gameTimer: new Timer(),
@@ -945,7 +893,8 @@ export let level = {
   tileBackground: undefined,
   tileBackgroundLayer: undefined,
   levelSize: undefined,
-  levelColor: Color,
+  levelColor: undefined,
+  sky: undefined,
   levelGroundColor: {},
   warmup: 0,
 };

@@ -15,7 +15,6 @@ import {
 } from "../../lib/little";
 
 import {
-  initSky,
   initParallaxLayers,
   decorateBackgroundTile,
   decorateTile,
@@ -23,14 +22,10 @@ import {
   getTileBackgroundData,
   tileBackground,
 } from ".";
+import { initSky } from "./drawSky";
 import { Player } from "./player";
 import { buildTerrain } from "./buildTerrain";
 import { makeTileLayers } from "./makeTileLayers";
-
-function generateLevel(levelSize: Vector2) {
-  // clear old level
-  engineObjectsDestroy();
-}
 
 function calcPlayerStart(levelSize: Vector2) {
   const playerStartPos = vec2(rand(levelSize.x), levelSize.y);
@@ -52,12 +47,14 @@ export default function buildLevel() {
     .add(new Color(0.4, 0.4, 0.4))
     .clamp();
 
-  generateLevel(levelSize);
+  // clear old level
+  engineObjectsDestroy();
+
   // randomize ground level hills
   const { tileBackground, tileCollision } = buildTerrain(levelSize);
 
-  initSky();
-  initParallaxLayers(levelColor);
+  const sky = initSky();
+  initParallaxLayers(levelColor, sky);
 
   // apply decoration to level tiles
   const { tileLayer, tileBackgroundLayer } = makeTileLayers(
@@ -91,6 +88,7 @@ export default function buildLevel() {
     playerStartPos,
     levelSize,
     levelColor,
+    sky,
     levelGroundColor,
     tileBackground,
     tileCollision,
