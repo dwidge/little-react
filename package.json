@@ -9,9 +9,9 @@
     "lib"
   ],
   "scripts": {
-    "dev": "servey src=src/index.tsx env=REACT_APP_ dir=public port=3000",
+    "start": "servey src=src/index.tsx env=REACT_APP_ dir=public port=3000",
     "build": "buildy src=src/index.tsx env=REACT_APP_ dir=public out=build",
-    "start": "pnpx http-server build -o -p3000",
+    "serve": "pnpx http-server build -o -p3000",
     "test": "jest"
   },
   "keywords": [],
