@@ -3,9 +3,7 @@ import {
   randColor,
   vec2,
   Color,
-  tileCollisionSize,
   initTileCollision,
-  setTileCollisionData,
   tileCollisionRaycast,
   frameRate,
   engineObjectsUpdate,
@@ -19,13 +17,11 @@ import {
   decorateBackgroundTile,
   decorateTile,
   level,
-  getTileBackgroundData,
-  tileBackground,
 } from ".";
 import { initSky } from "./drawSky";
 import { Player } from "./player";
-import { buildTerrain } from "./buildTerrain";
 import { makeTileLayers } from "./makeTileLayers";
+import { Terrain } from "./Terrain";
 
 function calcPlayerStart(levelSize: Vector2) {
   const playerStartPos = vec2(rand(levelSize.x), levelSize.y);
@@ -36,8 +32,7 @@ function calcPlayerStart(levelSize: Vector2) {
   return raycastHit.add(vec2(0, 1));
 }
 
-export default function buildLevel() {
-  const levelSize = vec2(256);
+export default function buildLevel(terrain: Terrain) {
   const levelColor = randColor(
     new Color(0.2, 0.2, 0.2),
     new Color(0.8, 0.8, 0.8)
@@ -51,7 +46,7 @@ export default function buildLevel() {
   engineObjectsDestroy();
 
   // randomize ground level hills
-  const { tileBackground, tileCollision } = buildTerrain(levelSize);
+  const { levelSize, tileBackground, tileCollision } = terrain;
 
   const sky = initSky();
   initParallaxLayers(levelColor, sky);

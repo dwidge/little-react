@@ -241,7 +241,30 @@ export default function Platformer(
     setGravity(-0.01);
     setCameraScale(4 * 16);
     level.gameTimer.set();
-    level = { ...level, ...buildLevel() };
+
+    const levelSize = vec2(256);
+    const terrain = buildTerrain(levelSize);
+    const terrainModes = buildTerrainFromNodes(levelSize, {
+      name: "x",
+      children: [
+        { name: "y", children: [] },
+        { name: "y", children: [] },
+        {
+          name: "y",
+          children: [
+            {
+              name: "x",
+              children: [
+                { name: "y", children: [] },
+                { name: "y", children: [] },
+                { name: "y", children: [] },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    level = { ...level, ...buildLevel(terrain) };
   }
 
   ///////////////////////////////////////////////////////////////////////////////
@@ -853,6 +876,8 @@ export function updateParallaxLayers() {
 
 import { Player } from "./player";
 import { drawSky, drawStars, skyColor, Sky } from "./drawSky";
+import { buildTerrainFromNodes } from "./terrain/buildTerrainFromNodes";
+import { buildTerrain } from "./terrain/buildTerrain";
 
 /// level.ts
 /*
