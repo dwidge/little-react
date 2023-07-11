@@ -220,7 +220,7 @@ import {
   tileCollisionSize,
   engineObjectsDestroy,
 } from "../../lib/little";
-import Depp from "./depp";
+import song from "./music/back";
 import { Crate } from "./Crate";
 import { Enemy } from "./Enemy";
 import buildLevel from "./buildLevel";
@@ -334,7 +334,7 @@ export default function Platformer(
     //drawText("Deaths: " + deaths, (overlayCanvas.width * 3) / 4, 20);
   }
 
-  const music = new Music(Depp).play();
+  const music = new Music(song).play();
   console.log("play");
 
   ///////////////////////////////////////////////////////////////////////////////
