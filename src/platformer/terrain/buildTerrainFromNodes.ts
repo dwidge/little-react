@@ -28,8 +28,13 @@ export function buildTerrainFromNodes(
   );
   generateRooms(rootNode, levelSize, tileCollision);
   generateLadders(levelSize, tileCollision);
-  spawnCrates(levelSize);
-  spawnEnemies(levelSize);
+  const crates = spawnCrates(levelSize);
+  const enemies = spawnEnemies(levelSize);
 
-  return { levelSize, tileBackground, tileCollision };
+  return {
+    levelSize,
+    tileBackground,
+    tileCollision,
+    objects: [...crates, ...enemies],
+  };
 }

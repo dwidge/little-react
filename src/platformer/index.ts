@@ -218,6 +218,7 @@ import {
   engineObjectsCallback,
   Timer,
   tileCollisionSize,
+  engineObjectsDestroy,
 } from "../../lib/little";
 import Depp from "./depp";
 import { Crate } from "./Crate";
@@ -242,6 +243,9 @@ export default function Platformer(
     setCameraScale(4 * 16);
     level.gameTimer.set();
 
+    // clear old level
+    engineObjectsDestroy();
+
     const levelSize = vec2(256);
     const terrain = buildTerrain(levelSize);
     const terrainModes = buildTerrainFromNodes(levelSize, {
@@ -264,7 +268,8 @@ export default function Platformer(
         },
       ],
     });
-    level = { ...level, ...buildLevel(terrain) };
+    engineObjects.splice(0, 0, ...terrain.objects);
+    Object.assign(level, buildLevel(terrain));
   }
 
   ///////////////////////////////////////////////////////////////////////////////
