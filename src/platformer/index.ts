@@ -904,12 +904,13 @@ export type Level = {
   player?: Player;
   playerStartPos: Vector2;
   tileLayer?: TileLayer;
+  tileCollision?: number[];
   tileBackground?: number[];
   tileBackgroundLayer?: TileLayer;
   levelSize?: Vector2;
   levelColor?: Color;
   sky?: Sky;
-  levelGroundColor: {};
+  levelGroundColor?: Color;
   warmup: number;
 };
 
@@ -917,15 +918,7 @@ export let level: Level = {
   score: 0,
   deaths: 0,
   gameTimer: new Timer(),
-  player: undefined,
   playerStartPos: new Vector2(),
-  tileLayer: undefined,
-  tileBackground: undefined,
-  tileBackgroundLayer: undefined,
-  levelSize: undefined,
-  levelColor: undefined,
-  sky: undefined,
-  levelGroundColor: {},
   warmup: 0,
 };
 
