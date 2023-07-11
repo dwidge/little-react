@@ -246,9 +246,9 @@ export default function Platformer(
     // clear old level
     engineObjectsDestroy();
 
-    const levelSize = vec2(256);
-    const terrain = buildTerrain(levelSize);
-    const terrainModes = buildTerrainFromNodes(levelSize, {
+    const levelSize = vec2(64);
+    const terrainBattle = buildTerrain(levelSize);
+    const terrainNodes = buildTerrainFromNodes(levelSize, {
       name: "x",
       children: [
         { name: "y", children: [] },
@@ -268,6 +268,8 @@ export default function Platformer(
         },
       ],
     });
+    const terrain = terrainNodes;
+
     engineObjects.splice(0, 0, ...terrain.objects);
     Object.assign(level, buildLevel(terrain));
   }
