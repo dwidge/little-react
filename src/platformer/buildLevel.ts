@@ -11,12 +11,9 @@ import {
   setTileCollision,
 } from "../../lib/little";
 
-import {
-  initParallaxLayers,
-  decorateBackgroundTile,
-  decorateTile,
-  level,
-} from ".";
+import { initParallaxLayers, level } from ".";
+import { decorateBackgroundTile } from "./decorateBackgroundTile";
+import { decorateTile } from "./decorateTile";
 import { initSky } from "./drawSky";
 import { Player } from "./player";
 import { makeTileLayers } from "./makeTileLayers";
@@ -60,7 +57,7 @@ export default function buildLevel(terrain: Terrain) {
   for (pos.x = levelSize.x; pos.x--; )
     for (pos.y = levelSize.y; pos.y-- > 1; ) {
       decorateBackgroundTile(pos);
-      decorateTile(tileLayer, pos);
+      decorateTile(tileLayer, pos, tileCollision, levelSize, levelGroundColor);
     }
   initTileCollision(levelSize);
   setTileCollision(tileCollision);
