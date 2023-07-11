@@ -7,7 +7,6 @@ import {
   tileCollisionRaycast,
   frameRate,
   engineObjectsUpdate,
-  engineObjectsDestroy,
   Vector2,
   setTileCollision,
 } from "../../lib/little";
@@ -42,11 +41,10 @@ export default function buildLevel(terrain: Terrain) {
     .add(new Color(0.4, 0.4, 0.4))
     .clamp();
 
-  // clear old level
-  engineObjectsDestroy();
-
   // randomize ground level hills
   const { levelSize, tileBackground, tileCollision } = terrain;
+  initTileCollision(levelSize);
+  setTileCollision(tileCollision);
 
   const sky = initSky();
   initParallaxLayers(levelColor, sky);
