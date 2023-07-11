@@ -79,7 +79,7 @@ export class Weapon extends EngineObject {
 
     this.mirror = this.parent.mirror;
     this.fireTimeBuffer += timeDelta;
-    if (this.triggerIsDown) {
+    if (false && this.triggerIsDown) {
       // try to fire
       for (
         ;
