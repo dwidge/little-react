@@ -619,6 +619,10 @@ export function makeDebris(
 ///////////////////////////////////////////////////////////////////////////////
 
 export function explosion(pos, radius = 3) {
+  if (!level.tileLayer) return;
+  if (!level.tileCollision) return;
+  if (!level.levelSize) return;
+  if (!level.levelGroundColor) return;
   ASSERT(radius > 0);
 
   const damage = radius * 2;
@@ -634,7 +638,13 @@ export function explosion(pos, radius = 3) {
   for (let x = -cleanupRadius; x < cleanupRadius; ++x) {
     const h = (cleanupRadius ** 2 - x ** 2) ** 0.5;
     for (let y = -h; y < h; ++y)
-      decorateTile(level.tileLayer, pos.add(vec2(x, y)).floor());
+      decorateTile(
+        level.tileLayer,
+        pos.add(vec2(x, y)).floor(),
+        level.tileCollision,
+        level.levelSize,
+        level.levelGroundColor
+      );
   }
 
   // kill/push objects
