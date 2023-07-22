@@ -208,6 +208,7 @@ import {
   frame,
   timeReal,
   paused,
+  setPaused,
   //frameTimeLastMS,
   averageFPS,
   //drawCount,
@@ -228,10 +229,9 @@ import buildLevel from "./buildLevel";
 export let score = 0,
   deaths = 0;
 
-export default function Platformer(
-  div: HTMLDivElement,
-  statsDisplay: HTMLDivElement
-) {
+export type Platformer = { paused: boolean; setPaused: (v: boolean) => void };
+
+export function Platformer(div: HTMLDivElement, statsDisplay: HTMLDivElement) {
   ///////////////////////////////////////////////////////////////////////////////
   function gameInit() {
     // enable touch gamepad on touch devices
@@ -334,8 +334,7 @@ export default function Platformer(
     //drawText("Deaths: " + deaths, (overlayCanvas.width * 3) / 4, 20);
   }
 
-  const music = new Music(song).play();
-  console.log("play");
+  const music = new Music(song); //.play();
 
   ///////////////////////////////////////////////////////////////////////////////
   // Startup LittleJS Engine
@@ -349,7 +348,15 @@ export default function Platformer(
     tilemapImage
   );
 
-  return music;
+  setPaused(1);
+
+  return {
+    paused: !!paused,
+    setPaused(v: boolean) {
+      setPaused(v);
+      if (!v) music.play();
+    },
+  } as Platformer;
 }
 
 /// effects.ts

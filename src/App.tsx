@@ -1,13 +1,14 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "../lib/flex.css";
 import { div } from "../lib/utils/classy";
 import Stress from "./stress";
-import Platformer from "./platformer";
+import { Platformer } from "./platformer";
 
 const App: React.FC<{}> = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
-  const engineRef = useRef(null);
+  const engineRef = useRef<Platformer>(null);
+  const [paused, setPaused] = useState<boolean>(true);
   useEffect(() => {
     if (canvasRef.current && statsRef.current && !engineRef.current)
       engineRef.current = Platformer(canvasRef.current, statsRef.current);
@@ -15,7 +16,16 @@ const App: React.FC<{}> = () => {
   return (
     <Background>
       <Foreground>
-        <Window ref={canvasRef}>
+        <button
+          style={{ display: !paused ? "none" : "block" }}
+          onClick={() => {
+            setPaused(false);
+            engineRef.current?.setPaused(false);
+          }}
+        >
+          Start
+        </button>
+        <Window style={{ display: paused ? "none" : "block" }} ref={canvasRef}>
           <Stats ref={statsRef} style={{}} />
         </Window>
       </Foreground>
