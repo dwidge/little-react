@@ -302,9 +302,17 @@ export function Platformer(div: HTMLDivElement, statsDisplay: HTMLDivElement) {
   ///////////////////////////////////////////////////////////////////////////////
   function gameUpdatePost() {
     // move camera to level.player
-    setCameraPos(
-      cameraPos.lerp(level.player.pos, clamp(level.player.getAliveTime() / 2))
-    );
+    if (paused)
+      setCameraPos(
+        cameraPos
+          .lerp(mousePos, 1 / 8)
+          .min(new Vector2(0, 0))
+          .max(level.levelSize)
+      );
+    else
+      setCameraPos(
+        cameraPos.lerp(level.player.pos, clamp(level.player.getAliveTime() / 2))
+      );
 
     // update parallax background relative to camera
     updateParallaxLayers();
