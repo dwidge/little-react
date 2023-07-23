@@ -25,7 +25,7 @@ const App: React.FC<{}> = () => {
         >
           Start
         </button>
-        <Window style={{ display: paused ? "none" : "block" }} ref={canvasRef}>
+        <Window style={{ display: 0 ? "none" : "block" }} ref={canvasRef}>
           <Stats ref={statsRef} style={{}} />
         </Window>
       </Foreground>
