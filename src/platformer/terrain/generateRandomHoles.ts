@@ -6,12 +6,20 @@ export function generateRandomHoles(
   levelSize: Vector2,
   tileCollision: number[]
 ) {
-  for (let i = levelSize.x; i--; ) {
-    const pos = vec2(rand(levelSize.x), rand(levelSize.y / 2, 9));
-    const height = randInt(19, 1);
-    const offset = vec2();
-    for (offset.x = randInt(19, 1); --offset.x; )
-      for (offset.y = height; --offset.y; )
-        setTile(levelSize, tileCollision, pos.add(offset), tileType_empty);
-  }
+  return Array(levelSize.x)
+    .fill(0)
+    .map(() => generateRandomHole(levelSize, tileCollision));
+}
+
+export function generateRandomHole(
+  levelSize: Vector2,
+  tileCollision: number[]
+) {
+  const pos = vec2(rand(levelSize.x), rand(levelSize.y / 2, 9));
+  const size = vec2(randInt(19, 1), randInt(19, 1));
+  const offset = vec2();
+  for (offset.x = size.x; --offset.x; )
+    for (offset.y = size.y; --offset.y; )
+      setTile(levelSize, tileCollision, pos.add(offset), tileType_empty);
+  return pos;
 }
