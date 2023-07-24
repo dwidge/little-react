@@ -10,11 +10,13 @@ import { tileType_empty, tileType_solid, tileType_ladder } from "..";
 export function generateRooms(
   node: Node,
   levelSize: Vector2,
-  tileCollision: number[]
+  tileCollision: number[],
+  offset: Vector2 = new Vector2(10, 10)
 ) {
   const tileMap = new TileMap(levelSize, tileCollision);
   const plan = getRoomPlan(node);
-  generateRoom(tileMap, plan, new Vector2(10, 10));
+  generateRoom(tileMap, plan, offset);
+  return offset.add(plan.entrance).add(new Vector2(0, 1));
 }
 
 function generateRoom(tileMap: TileMap, plan: RoomPlan, offset: Vector2) {
