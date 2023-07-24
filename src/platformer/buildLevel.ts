@@ -1,34 +1,21 @@
 import {
-  rand,
   randColor,
   vec2,
   Color,
   initTileCollision,
-  tileCollisionRaycast,
   frameRate,
   engineObjectsUpdate,
-  Vector2,
   setTileCollision,
 } from "../../lib/little";
 
-import { initParallaxLayers, level } from ".";
+import { Level, initParallaxLayers, level } from ".";
 import { decorateBackgroundTile } from "./decorateBackgroundTile";
 import { decorateTile } from "./decorateTile";
 import { initSky } from "./drawSky";
-import { Player } from "./player";
 import { makeTileLayers } from "./makeTileLayers";
 import { Terrain } from "./Terrain";
 
-function calcPlayerStart(levelSize: Vector2) {
-  const playerStartPos = vec2(rand(levelSize.x), levelSize.y);
-  const raycastHit = tileCollisionRaycast(
-    playerStartPos,
-    vec2(playerStartPos.x, 0)
-  );
-  return raycastHit.add(vec2(0, 1));
-}
-
-export default function buildLevel(terrain: Terrain) {
+export default function buildLevel(terrain: Terrain): Partial<Level> {
   const levelColor = randColor(
     new Color(0.2, 0.2, 0.2),
     new Color(0.8, 0.8, 0.8)
@@ -39,7 +26,7 @@ export default function buildLevel(terrain: Terrain) {
     .clamp();
 
   // randomize ground level hills
-  const { levelSize, tileBackground, tileCollision } = terrain;
+  const { levelSize, tileBackground, tileCollision, playerStartPos } = terrain;
   initTileCollision(levelSize);
   setTileCollision(tileCollision);
 
@@ -67,14 +54,9 @@ export default function buildLevel(terrain: Terrain) {
   for (let i = 5 * frameRate; i--; ) engineObjectsUpdate();
   level.warmup = 0;
 
-  // spawn player
-  const playerStartPos = calcPlayerStart(levelSize);
-  const player = new Player(playerStartPos);
-
   return {
     score: 0,
     deaths: 0,
-    player,
     playerStartPos,
     levelSize,
     levelColor,

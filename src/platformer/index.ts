@@ -272,6 +272,7 @@ export function Platformer(div: HTMLDivElement, statsDisplay: HTMLDivElement) {
 
     engineObjects.splice(0, 0, ...terrain.objects);
     Object.assign(level, buildLevel(terrain));
+    spawnPlayer();
   }
 
   ///////////////////////////////////////////////////////////////////////////////
@@ -899,5 +900,5 @@ export const getTileBackgroundData = (pos: Vector2) =>
 
 export function spawnPlayer() {
   setCameraPos(level.playerStartPos);
-  level.player = new Player(level.playerStartPos);
+  level.player = new Player(level.playerStartPos.add(new Vector2(0.5, 0.5)));
 }
