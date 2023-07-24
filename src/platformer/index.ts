@@ -741,6 +741,7 @@ export function explosion(pos, radius = 3) {
 ///////////////////////////////////////////////////////////////////////////////
 
 export function destroyTile(pos: Vector2, makeSound = 1, cleanNeighbors = 1) {
+  if (!level.destructible) return;
   if (!level.tileLayer) throw new Error("destroyTileE1");
 
   // pos must be an int
@@ -868,6 +869,7 @@ export const tileType_empty = 0;
 export const tileType_solid = 1;
 
 export type Level = {
+  destructible: boolean;
   score: number;
   deaths: number;
   gameTimer: Timer;
@@ -885,6 +887,7 @@ export type Level = {
 };
 
 export let level: Level = {
+  destructible: true,
   score: 0,
   deaths: 0,
   gameTimer: new Timer(),

@@ -26,7 +26,13 @@ export default function buildLevel(terrain: Terrain): Partial<Level> {
     .clamp();
 
   // randomize ground level hills
-  const { levelSize, tileBackground, tileCollision, playerStartPos } = terrain;
+  const {
+    levelSize,
+    tileBackground,
+    tileCollision,
+    playerStartPos,
+    destructible,
+  } = terrain;
   initTileCollision(levelSize);
   setTileCollision(tileCollision);
 
@@ -55,6 +61,7 @@ export default function buildLevel(terrain: Terrain): Partial<Level> {
   level.warmup = 0;
 
   return {
+    destructible,
     score: 0,
     deaths: 0,
     playerStartPos,

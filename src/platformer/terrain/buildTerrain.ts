@@ -20,6 +20,7 @@ export function buildTerrain(levelSize: Vector2): Terrain {
   return {
     levelSize,
     playerStartPos,
+    destructible: true,
     tileBackground,
     tileCollision,
     objects: [...crates, ...enemies],

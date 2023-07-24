@@ -28,6 +28,7 @@ export function buildTerrainFromNodes(
   return {
     levelSize,
     playerStartPos,
+    destructible: false,
     tileBackground,
     tileCollision,
     objects: [...crates, ...enemies],
