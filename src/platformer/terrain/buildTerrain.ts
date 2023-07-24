@@ -11,13 +11,15 @@ export function buildTerrain(levelSize: Vector2): Terrain {
   const tileCollision: number[] = [];
 
   generateGroundLevel(levelSize, tileBackground, tileCollision);
-  generateRandomHoles(levelSize, tileCollision);
+  const holes = generateRandomHoles(levelSize, tileCollision);
   generateLadders(levelSize, tileCollision);
   const crates = spawnCrates(levelSize);
   const enemies = spawnEnemies(levelSize);
+  const playerStartPos = holes[0];
 
   return {
     levelSize,
+    playerStartPos,
     tileBackground,
     tileCollision,
     objects: [...crates, ...enemies],

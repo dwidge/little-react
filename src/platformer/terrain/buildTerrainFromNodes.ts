@@ -21,12 +21,13 @@ export function buildTerrainFromNodes(
     tileType_solid,
     tileType_solid
   );
-  generateRooms(rootNode, levelSize, tileCollision);
+  const playerStartPos = generateRooms(rootNode, levelSize, tileCollision);
   const crates = spawnCrates(levelSize);
   const enemies = spawnEnemies(levelSize);
 
   return {
     levelSize,
+    playerStartPos,
     tileBackground,
     tileCollision,
     objects: [...crates, ...enemies],
